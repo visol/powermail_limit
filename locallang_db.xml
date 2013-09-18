@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description>Language labels for database tables/fields belonging to extension 'powermail_limit'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="tx_powermail_limit_forms.xml.optionlimit">Limit message shown in options (if empty option will not shown)</label>
+			<label index="tx_powermail_limit_forms.xml.errorlimit">Limit message shown in error message</label>
+			<label index="tt_content.tx_powermaillimit_postlimit">Limit number of form posts</label>
+			<label index="tt_content.tx_powermaillimit_postlimit_error">Error message for post limit</label>
+			<label index="tx_powermail_forms.limittab">Limit</label>
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="tx_powermail_limit_forms.xml.optionlimit">Limitierungs-Hinweis in Auswahl (falls leer wird die Auswahl nicht angezeigt)</label>
+			<label index="tx_powermail_limit_forms.xml.errorlimit">Limitierungs-Hinweis in Fehlerausgabe</label>
+			<label index="tt_content.tx_powermaillimit_postlimit">Limit für Formular-Postings</label>
+			<label index="tt_content.tx_powermaillimit_postlimit_error">Fehlermeldung für Posting-Limit</label>
+			<label index="tx_powermail_forms.limittab">Limitierung</label>
+		</languageKey>
+	</data>
+</T3locallang>

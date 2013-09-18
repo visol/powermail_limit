@@ -1,0 +1,56 @@
+Powermail HTML Template for fieldwraps
+
+	--- GLOBAL MARKERS ---
+	###LABEL###					Field label
+	###LABEL_NAME###			"uid" + uid
+	###MANDATORY_SYMBOL###		Symbol if mandatory field
+	###NAME###					Field name
+    ###DESCRIPTION###			Field Description with wrap from constants
+	###VALUE###					Standard-value
+	###CLASS###					Field's class
+	###ID###					Field's id
+	###SIZE###					Field's size
+	###MULTIPLE###				If multiple is allowed in select
+	###MAXLENGTH###				Field's maximum length
+	###READONLY###				Is this field readonly?
+	###POWERMAIL_FIELD_UID###	UID of current field
+	###COLS###					Rows for textarea
+	###ROWS###					Cols for textarea
+	###ONFOCUS###				includes eventhandlers like onFocus and onBlur
+	###ONCHANGE###				includes eventhandlers for changing fields like select
+	###TABINDEX###				Uses tabindex (automaticly or via constants)
+	###ACCESSKEY###				Uses acceskeys if set in constants
+	###JS###					Fields: Could be used in different powermail extensions to add eventhandler, etc...
+	###JS_INNER###				Fields: Could be used in different powermail extensions to add eventhandler in the innerMarkerArray, etc... (radiobuttons, checkboxes, etc...)
+    ###DIVJS###					DIV arround Fields: Could be used in different powermail extensions to add eventhandler, etc...
+    ###POWERMAIL_TARGET### 		Link to the same page (could be used for different javascripts, etc..)
+    ###POWERMAIL_NAME###		Form name (could be used for different javascripts, etc..)
+    ###ALTERNATE###				Will be filled with odd or with even
+	
+	--- GENERAL MARKERS --
+	Displaying any value from pi1/locallang.xml:		###POWERMAIL_LOCALLANG_YOURFIELD### (Could be filled via locallang.xml or typoscript - see manual for details)
+	Displaying any value from typoscript:				###POWERMAIL_TYPOSCRIPT_YOURFIELD### (Could be filled via typoscript - see manual for details)
+
+
+
+
+
+
+Fieldwrap for select fields (dropdown) like <select>
+
+	Special markers:
+	###SELECTED###		Preselection
+
+<!-- ###POWERMAIL_FIELDWRAP_HTML_SELECTLIMIT### begin -->
+	<div id="powermaildiv_uid###POWERMAIL_FIELD_UID###" class="tx_powermail_pi1_fieldwrap_html tx_powermail_pi1_fieldwrap_html_select tx_powermail_pi1_fieldwrap_html_###POWERMAIL_FIELD_UID### ###ALTERNATE###"###CLASS_ADDITIONAL######DIVJS###>
+		<label for="###LABEL_NAME###">###LABEL######DESCRIPTION######MANDATORY_SYMBOL###</label>
+		<select ###NAME######ID######CLASS######ONCHANGE######ONFOCUS######SIZE######TABINDEX######ACCESSKEY######MULTIPLE######JS######REQUIRED###>
+		 <!-- ###CONTENT### -->
+		 	<!-- ###ITEM### -->
+		 		<option value="###VALUE###"###SELECTED######JS_INNER######VALIDATION_INNER###>###LABEL###</option>
+		 	<!-- ###ITEM### -->
+		 <!-- ###CONTENT### -->
+		 </select>
+	</div>
+<!-- ###POWERMAIL_FIELDWRAP_HTML_SELECTLIMIT### end -->
+
