@@ -134,8 +134,14 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 
 
 			for ($i=0; $i < count($optionlines); $i++) { // One tag for every option
+			
+				// use lable as value if no separate string in 2nd part 
+				$optionValue = $options[$i][1] ? $options[$i][1] : $options[$i][0];
 				$markerArray['###LABEL###'] = $options[$i][0]; // fill label marker with label
-				$markerArray['###VALUE###'] = $options[$i][1]; // fill value marker with value
+				$markerArray['###VALUE###'] = $optionValue; // fill value marker with value
+
+				// empty value if label contains "..." or "---" for mandatory check
+				$markerArray['###VALUE###'] = preg_match("/\.\.\.|---/",$options[$i][0]) ? '' : $optionValue;
 				
 				// ###SELECTED###
 				if (!is_array($this->piVarsFromSession['uid' . $this->uid])) { // no multiple
