@@ -35,84 +35,144 @@ require_once(t3lib_extMgm::extPath('powermail') . 'lib/class.tx_powermail_sessio
  * @subpackage    tx_powermaillimit
  */
 class tx_powermaillimit_pi1 extends tslib_pibase {
-	var $prefixId = 'tx_powermaillimit_pi1'; // Same as class name
+	var $prefixId = 'tx_powermail_pi1'; // Same as class name
 	var $scriptRelPath = 'pi1/class.tx_powermaillimit_pi1.php'; // Path to this script relative to the extension dir.
 	var $extKey = 'powermail_limit'; // The extension key.
 	var $pi_checkCHash = TRUE;
 
+	/** @var array */
+	public $xml;
+
+	/** @var tx_powermail_functions_div */
+	public $div;
+
+	/** @var tslib_cObj */
+	public $cObj;
+
+	/** @var tx_powermail_dynamicmarkers */
+	public $dynamicMarkers;
+
+	/** @var tx_powermail_html */
+	public $obj;
+
+	public $class_f;
+	public $tmpl;
+	public $uid;
+	public $additionalCssToInputField;
+	public $formtitle;
+	public $type;
+	public $piVarsFromSession;
+	public $turnedtabindex;
+	public $markerArray;
+	public $newaccesskey;
+
+	/**
+	 * Use the FieldHook to add two additional field types selectlimit and checklimit
+	 * The FieldHook is executed before rendering a field
+	 *
+	 * @param $xml
+	 * @param $title
+	 * @param $type
+	 * @param $uid
+	 * @param $markerArray
+	 * @param $piVarsFromSession
+	 * @param $obj
+	 * @return string
+	 */
 	public function PM_FieldHook($xml, $title, $type, $uid, $markerArray, $piVarsFromSession, $obj) {
-		$this->conf = $conf;
-		$this->content = $content;
+		$this->conf = $obj->conf;
+		$this->content = $obj->content;
 		$this->pi_setPiVarDefaults();
 		$this->pi_loadLL();
 
+		// initialize objects
+		$this->div = t3lib_div::makeInstance('tx_powermail_functions_div');
+		$this->cObj = t3lib_div::makeInstance('tslib_cObj');
+		$this->dynamicMarkers = t3lib_div::makeInstance('tx_powermail_dynamicmarkers'); // New object: TYPO3 marker function
+		$this->obj = $obj;
+
+		// values from parent object
+		$this->uid = $obj->uid;
+		$this->formtitle = $obj->type;
+		$this->type = $obj->type;
+		$this->class_f = $obj->class_f; // Get css class of current field
+		$this->additionalCssToInputField = !!$this->conf['additionalCssToInputField'];
+		$this->uid = $uid;
+		$this->piVarsFromSession = $piVarsFromSession;
+		$this->turnedtabindex = $obj->turnedtabindex;
+		$this->markerArray = $markerArray;
+		$this->newaccesskey = $obj->newaccesskey;
+
 		// config
 		$this->xml = $xml;
-		$this->uid = $uid;
-		$this->obj = $obj;
-		$this->piVarsFromSession = $piVarsFromSession;
+
 		$content = '';
-		$content_item = '';
 		$this->tmpl = array();
 		$this->tmpl['all'] = tslib_cObj::fileResource('EXT:powermail_limit/template/tx_powermaillimit_fieldwrap.html');
-		//tslib_cObj::fileResource($this->conf['template.']['fieldWrap'])
 
-		// let's go
-		if ($type == 'selectlimit') {
-			$content = $this->html_selectlimit(); // generate selectorbox <select><option>...
-
-			if (!empty($content)) return $content;
+		switch ($type) {
+			case 'selectlimit':
+				$content = $this->html_selectlimit(); // generate selectorbox <select><option>...
+				if (!empty($content)) return $content;
+				break;
+			case 'checklimit':
+				$content = $this->html_checklimit(); // generate selectorbox <select><option>...
+				if (!empty($content)) return $content;
+				break;
 		}
+
 	}
 
+	/**
+	 * Using the MandatoryHookBefore to check if there is a limit error
+	 * This hook is executed before the mandatory check after submitting a form
+	 *
+	 * @param $error
+	 * @param $markerArray
+	 * @param $sessionfields
+	 * @param $obj
+	 */
 	public function PM_MandatoryHookBefore(&$error, $markerArray, &$sessionfields, $obj) {
 		$this->obj = $obj;
 
-		//$fieldPid = $GLOBALS['TSFE']->id;
-		$session = $GLOBALS["TSFE"]->fe_user->getKey('ses', 'tx_powermaillimit_selectlimit');
-
+		$selectLimit = $GLOBALS["TSFE"]->fe_user->getKey('ses', 'tx_powermaillimit_selectlimit');
 		foreach ($sessionfields as $field => $value) {
-			if (isset($session['limits'][$field][$value])) {
-				$fieldUid = $session['limits'][$field][$value]['fieldUid'];
-				$option = $session['limits'][$field][$value]['option'];
+			if (isset($selectLimit['limits'][$field][$value])) {
+				$fieldUid = $selectLimit['limits'][$field][$value]['fieldUid'];
+				$option = $selectLimit['limits'][$field][$value]['option'];
 
-				if ($this->isLimitExceeded($fieldUid, $option)) {
+				if ($this->isLimitReached($fieldUid, $option)) {
 					$error = 1;
-					$sessionfields['ERROR'][3][] = $session['limits'][$field][$value]['errorlimit'];
+					$sessionfields['ERROR'][3][] = $selectLimit['limits'][$field][$value]['option'][0] . ': ' . $selectLimit['limits'][$field][$value]['errorlimit'];
 				}
 			}
 		}
-	}
 
-	public function PM_FormWrapMarkerHook(&$outerMarkerArray, &$subpartArray, &$conf, &$obj) {
+		$checkLimit = $GLOBALS["TSFE"]->fe_user->getKey('ses', 'tx_powermaillimit_checklimit');
+		foreach ($sessionfields as $field => $valueArray) {
+			foreach ($valueArray as $value) {
+				if (isset($checkLimit['limits'][$field][$value])) {
+					$fieldUid = $checkLimit['limits'][$field][$value]['fieldUid'];
+					$option = $checkLimit['limits'][$field][$value]['option'];
 
-		if ($this->isPostLimitExceeded($obj)) {
-			$errorMessage = $obj->cObj->data['tx_powermaillimit_postlimit_error'];
-			$subpartArray['###POWERMAIL_CONTENT###'] = $obj->pi_RTEcssText($errorMessage);
-			return;
+					if ($this->isLimitReached($fieldUid, $option)) {
+						$error = 1;
+						$sessionfields['ERROR'][3][] = $checkLimit['limits'][$field][$value]['option'][0] . ': ' . $checkLimit['limits'][$field][$value]['errorlimit'];
+					}
+				}
+			}
 		}
 
 	}
-
-	public function PM_SubmitBeforeMarkerHook(&$obj, &$markerArray, &$sessiondata) {
-
-		if ($this->isPostLimitExceeded($obj)) {
-			$errorMessage = $obj->cObj->data['tx_powermaillimit_postlimit_error'];
-			$renderErrorMessage = $obj->pi_RTEcssText($errorMessage);
-			return $renderErrorMessage;
-		}
-
-	}
-
 
 	/**
-	 * Function html_select() returns HTML tag for selectorbox
+	 * Function html_selectlimit() returns HTML tag for select box with limit
 	 *
 	 * @return    string    $content
 	 */
 	public function html_selectlimit() {
-		$this->tmpl['html_selectlimit']['all'] = tslib_cObj::getSubpart($this->tmpl['all'], '###POWERMAIL_FIELDWRAP_HTML_SELECTLIMIT###'); // work on subpart 1
-		$this->tmpl['html_selectlimit']['item'] = tslib_cObj::getSubpart($this->tmpl['html_selectlimit']['all'], '###ITEM###'); // work on subpart 2
+		$this->tmpl['html_selectlimit']['all'] = $this->cObj->getSubpart($this->tmpl['all'], '###POWERMAIL_FIELDWRAP_HTML_SELECTLIMIT###'); // work on subpart 1
+		$this->tmpl['html_selectlimit']['item'] = $this->cObj->getSubpart($this->tmpl['html_selectlimit']['all'], '###ITEM###'); // work on subpart 2
 
 		$optionlimit = $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'optionlimit');
 		$errorlimit = $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'errorlimit');
@@ -172,8 +232,8 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 					}
 				}
 
-				// check if limit is already exceeded
-				if ($this->isLimitExceeded($this->uid, $options[$i])) {
+				// check if limit is already reached
+				if ($this->isLimitReached($this->uid, $options[$i])) {
 					if ($optionlimit) {
 						$markerArray['###LABEL###'] .= $optionlimit;
 						$markerArray['###SELECTED###'] .= ' disabled="disabled"';
@@ -183,10 +243,9 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 					}
 				}
 
-				// Store values in session (easier usage in PM_MandatoryHookBefore
+				// Store values in session (easier usage in PM_MandatoryHookBefore)
 				if (isset($options[$i][3])) { // limit set
 					$value = $options[$i][1] ? $options[$i][1] : $options[$i][0];
-					$limit = intval($options[$i][3]);
 
 					$session = $GLOBALS["TSFE"]->fe_user->getKey('ses', 'tx_powermaillimit_selectlimit');
 
@@ -215,24 +274,152 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 		return $content; // return HTML
 	}
 
-	public function isLimitExceeded($fieldUid, $option) {
+	/**
+	 * Function html_checklimit() returns HTML tag for checkboxes with limit
+	 *
+	 * @return	string	$content
+	 */
+	public function html_checklimit() {
+		$this->tmpl['html_check']['all'] = $this->cObj->getSubpart($this->tmpl['all'], '###POWERMAIL_FIELDWRAP_HTML_CHECKLIMIT###');
+		$this->tmpl['html_check']['item'] = $this->cObj->getSubpart($this->tmpl['html_check']['all'], '###ITEM###');
+
+		$optionlimit = $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'optionlimit');
+		$errorlimit = $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'errorlimit');
+
+		if ($this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'options')) { // Only if options are set
+			$content_item = ''; $options = array(); // init
+			$optionlines = t3lib_div::trimExplode("\n", $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'options'), 1); // Every row is a new option
+			for ($i=0; $i < count($optionlines); $i++) { // One tag for every option
+				$options[$i] = t3lib_div::trimExplode('|', $optionlines[$i], 0); // Every row is a new option
+				$markerArray['###NAME###'] = 'name="' . $this->prefixId . '[uid' . $this->uid . '][' . $i . ']" '; // add name to markerArray
+				$markerArray['###LABEL###'] = $this->div->parseFunc($options[$i][0], $this->cObj, $this->conf['label.']['parse']);
+				$markerArray['###LABEL###'] = ($this->conf['label.']['parse']) ? $markerArray['###LABEL###'] : htmlspecialchars($markerArray['###LABEL###']);
+				$markerArray['###LABEL_NAME###'] = 'uid' . $this->uid . '_' . $i; // add labelname
+				$markerArray['###ID###'] = 'id="uid' . $this->uid . '_' . $i . '" '; // add labelname
+				//$markerArray['###VALUE###'] = 'value="' . (isset($options[$i][1]) ? htmlspecialchars($options[$i][1]) : htmlspecialchars($options[$i][0])) . '" ';
+				$markerArray['###VALUE###'] = 'value="' . (!empty($options[$i][1]) ? $options[$i][1] : $options[$i][0]) . '" ';
+				$markerArray['###CLASS###'] = 'class="'; // start class tag
+
+				// Add required class if needed
+				if($i == 0 && $this->pi_getFFvalue(t3lib_div::xml2array($this->xml), 'mandatory') == 1){
+					if(count($optionlines) > 1) {
+						$markerArray['###CLASS###'] .= 'required_one  ';
+					} else {
+						$markerArray['###CLASS###'] .= 'required  ';
+						$markerArray['###REQUIRED###'] = ' required="required"';
+					}
+				}
+
+				$markerArray['###CLASS###'] .= 'powermail_' . $this->formtitle; // add form title
+				$markerArray['###CLASS###'] .= ' powermail_' . $this->type; // add input type
+				$markerArray['###CLASS###'] .= ' powermail_uid' . $this->uid; // add input uid
+				$markerArray['###CLASS###'] .= ' powermail_subuid' . $this->uid . '_' . $i; // add input subuid
+				$markerArray['###CLASS###'] .= ($this->class_f != '' && $this->additionalCssToInputField) ? ' ' . htmlspecialchars($this->class_f) : ''; // add manual class
+				$markerArray['###CLASS###'] .= '" '; // close tag
+				$markerArray['###HIDDENVALUE###'] = 'value="' . htmlspecialchars($this->piVarsFromSession['uid' . $this->uid][$i]) . '"'; // add value for hidden field to markerArray
+				if ($this->pi_getFFvalue(t3lib_div::xml2array($this->xml),'mandatory') == 1) {
+					$markerArray['###MANDATORY_SYMBOL###'] = $this->cObj->wrap($this->conf['mandatory.']['symbol'], $this->conf['mandatory.']['wrap'],'|'); // add mandatory symbol if current field is a mandatory field
+				}
+				$this->turnedtabindex[$this->uid . '_' . $i] !== '' ? $markerArray['###TABINDEX###'] = 'tabindex="' . ($this->turnedtabindex[$this->uid . '_' . $i] + 1) . '" ' : $markerArray['###TABINDEX###'] = ''; // tabindex for every checkbox
+				isset($this->newaccesskey[$this->uid][$i]) ? $markerArray['###ACCESSKEY###'] = 'accesskey="' . $this->newaccesskey[$this->uid][$i] . '" ' : $markerArray['###ACCESSKEY###'] = ''; // accesskey for every checkbox
+
+				// ###CHECKED###
+				if ($options[$i][2] == '*')  {
+
+					$markerArray['###CHECKED###'] = 'checked="checked" '; // checked from backend
+					$markerArray['###HIDDENVALUE###'] = 'value="' . (isset($options[$i][1]) ? $options[$i][1] : $options[$i][0]) . '" ';
+
+				} elseif (!empty($this->conf['prefill.']['uid' . $this->uid . '_' . $i])) { // prechecking with typoscript for current field enabled
+
+					if ($this->cObj->cObjGetSingle($this->conf['prefill.']['uid' . $this->uid . '_' . $i], $this->conf['prefill.']['uid' . $this->uid . '_' . $i . '.']) == 1) {
+						$markerArray['###CHECKED###'] = 'checked="checked" '; // checked from backend
+						$markerArray['###HIDDENVALUE###'] = 'value="' . (isset($options[$i][1]) ? $options[$i][1] : $options[$i][0]) . '" ';
+					} else $markerArray['###CHECKED###'] = ''; // clear
+
+				}
+				// AST end
+				else $markerArray['###CHECKED###'] = ''; // clear
+				if (isset($this->piVarsFromSession['uid' . $this->uid])) { // Preselection from session
+					if (isset($this->piVarsFromSession['uid' . $this->uid][$i]) && $this->piVarsFromSession['uid' . $this->uid][$i] != '') {
+						$markerArray['###CHECKED###'] = 'checked="checked" '; // mark as checked
+						$markerArray['###HIDDENVALUE###'] = 'value="' . htmlspecialchars($this->piVarsFromSession['uid' . $this->uid][$i]) . '"'; // add value for hidden field to markerArray
+					}
+
+					else $markerArray['###CHECKED###'] = ''; // clear
+				}
+
+				// check if limit is already reached
+				if ($this->isLimitReached($this->uid, $options[$i])) {
+					if ($optionlimit) {
+						$markerArray['###LABEL###'] .= $optionlimit;
+						$markerArray['###CHECKED###'] .= ' disabled="disabled"';
+					} else {
+						// skip option if no message defined
+						continue;
+					}
+				}
+
+				// Store values in session (easier usage in PM_MandatoryHookBefore)
+				if (isset($options[$i][3])) { // limit set
+					$value = $options[$i][1] ? $options[$i][1] : $options[$i][0];
+
+					$session = $GLOBALS["TSFE"]->fe_user->getKey('ses', 'tx_powermaillimit_checklimit');
+
+					$session['limits']['uid' . $this->uid][$value] = Array(
+						'fieldUid' => $this->uid,
+						'option' => $options[$i],
+						'errorlimit' => $errorlimit
+					);
+
+					$GLOBALS["TSFE"]->fe_user->setKey('ses', 'tx_powermaillimit_checklimit', $session);
+					$GLOBALS["TSFE"]->storeSessionData();
+				}
+
+				$content_item .= $this->cObj->substituteMarkerArrayCached($this->tmpl['html_check']['item'], $markerArray); // substitute Marker in Template (subpart 2)
+			}
+
+		}
+		$subpartArray = array(); // init
+		$subpartArray['###CONTENT###'] = $content_item; // subpart 3
+
+		// Outer Marker array
+		$this->markerArray['###LABEL_MAIN###'] = htmlspecialchars($this->title);
+		$this->markerArray['###POWERMAIL_FIELD_UID###'] = $this->uid;
+
+		$content = $this->cObj->substituteMarkerArrayCached($this->tmpl['html_check']['all'], $this->markerArray, $subpartArray); // substitute Marker in Template
+		$content = $this->dynamicMarkers->main($this->conf, $this->cObj, $content); // Fill dynamic locallang or typoscript markers
+		$content = preg_replace('|###.*?###|i', '', $content); // Finally clear not filled markers
+		return $content; // return HTML
+	}
+
+	/**
+	 * Check if the maximum number of selections of a select option is already reached
+	 *
+	 * @param $fieldUid
+	 * @param $option
+	 * @return bool
+	 */
+	public function isLimitReached($fieldUid, $option) {
 		if (!isset($option[3])) { // no limit set
 			return FALSE;
 		}
 
 		$value = $option[1] ? $option[1] : $option[0];
 		$limit = intval($option[3]);
-
-		$count = $this->countStoredMailField($fieldUid, $value);
-
-		//echo $value.': '.$count.'/'.$limit.'<br/>';
+		$count = $this->countStoredMailField($fieldUid, strip_tags($value));
 
 		$this->session['limits']['uid' . $fieldUid][$value] = Array('fieldUid' => $fieldUid, 'option' => $option);
 
 		return ($count >= $limit);
 	}
 
-
+	/**
+	 * Count the number of mails having a value set for a field id
+	 *
+	 * @param $fieldUid
+	 * @param $value
+	 * @return int
+	 */
 	public function countStoredMailField($fieldUid, $value) {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'piVars',
@@ -248,14 +435,75 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 				$xml = t3lib_div::xml2array($row['piVars']);
 				$xml_value = $xml['uid' . $fieldUid];
-				if ($xml_value == $value) {
-					$count++;
+				if (is_array($xml_value)) {
+					foreach ($xml_value as $singleValue) {
+						if ($singleValue == $value) {
+							$count++;
+						}
+					}
+				} else {
+					if ($xml_value == $value) {
+						$count++;
+					}
 				}
 			}
 		}
 		return $count;
 	}
 
+	/**
+	 * Use FormWrapMarkerHook to display a message if the number of posts for the (whole) form was reached
+	 *
+	 * @param $outerMarkerArray
+	 * @param $subpartArray
+	 * @param $conf
+	 * @param $obj
+	 */
+	public function PM_FormWrapMarkerHook(&$outerMarkerArray, &$subpartArray, &$conf, &$obj) {
+		if ($this->isPostLimitExceeded($obj)) {
+			$errorMessage = $obj->cObj->data['tx_powermaillimit_postlimit_error'];
+			$subpartArray['###POWERMAIL_CONTENT###'] = $obj->pi_RTEcssText($errorMessage);
+			return;
+		}
+	}
+
+	/**
+	 * Use SubmitBeforeMarkerHook to count before submitting a form (in case another user made the form reach the limit in the meantime)
+	 *
+	 * @param $obj
+	 * @param $markerArray
+	 * @param $sessiondata
+	 * @return mixed
+	 */
+	public function PM_SubmitBeforeMarkerHook(&$obj, &$markerArray, &$sessiondata) {
+		if ($this->isPostLimitExceeded($obj)) {
+			$errorMessage = $obj->cObj->data['tx_powermaillimit_postlimit_error'];
+			$renderErrorMessage = $obj->pi_RTEcssText($errorMessage);
+			return $renderErrorMessage;
+		}
+	}
+
+	/**
+	 * Check if the number of posts reaches/exceeds the limit
+	 *
+	 * @param $obj
+	 * @return bool
+	 */
+	public function isPostLimitExceeded(&$obj) {
+		$limit = $obj->cObj->data['tx_powermaillimit_postlimit'];
+		if (!empty($limit)) {
+			$mailCount = $this->countMails();
+			if ($mailCount >= $limit) {
+				return TRUE;
+			}
+		}
+	}
+
+	/**
+	 * Count all mails on the current saving page
+	 *
+	 * @return mixed
+	 */
 	public function countMails() {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 			'*',
@@ -265,32 +513,16 @@ class tx_powermaillimit_pi1 extends tslib_pibase {
 			$orderBy = '',
 			$limit = ''
 		);
-
 		$count = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
 
 		return $count;
-
 	}
 
-
-	public function isPostLimitExceeded(&$obj) {
-
-		$limit = $obj->cObj->data['tx_powermaillimit_postlimit'];
-
-		if (!empty($limit)) {
-
-			$mailCount = $this->countMails();
-
-			if ($mailCount >= $limit) {
-				return TRUE;
-			}
-
-		}
-
-	}
-
-
-	// from class "tx_powermail_submit" Line 22
+	/**
+	 * Returns the pid for saving mails for the current form
+	 *
+	 * @return mixed
+	 */
 	public function getSavePid() {
 		$savePID = $GLOBALS['TSFE']->id; // PID where to save: Take current page
 		if (intval($this->obj->conf['PID.']['dblog']) > 0) $savePID = $this->obj->conf['PID.']['dblog']; // PID where to save: Get it from TS if set

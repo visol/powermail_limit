@@ -54,3 +54,21 @@ Fieldwrap for select fields (dropdown) like <select>
 	</div>
 <!-- ###POWERMAIL_FIELDWRAP_HTML_SELECTLIMIT### end -->
 
+<!-- ###POWERMAIL_FIELDWRAP_HTML_CHECKLIMIT### begin -->
+<div id="powermaildiv_uid###POWERMAIL_FIELD_UID###" class="tx_powermail_pi1_fieldwrap_html tx_powermail_pi1_fieldwrap_html_check tx_powermail_pi1_fieldwrap_html_###POWERMAIL_FIELD_UID######ALTERNATE######CLASS_ADDITIONAL###"###DIVJS###>
+
+	<div class="tx_powermail_pi1_fieldwrap_html_checkbox_title">###LABEL_MAIN######DESCRIPTION######MANDATORY_SYMBOL###</div>
+	<div class="checkgroup">
+		<!-- ###CONTENT### begin -->
+		<!-- ###ITEM### begin -->
+		<div class="powermail_check_inner powermail_check_inner_###LABEL_NAME###">
+			<input type="checkbox" name="check_###LABEL_NAME###" onclick="###JS_INNER###" id="check_###LABEL_NAME###" ###CHECKED######CLASS######ACCESSKEY######TABINDEX######VALIDATION_INNER######REQUIRED###/>
+			<input type="hidden" ###VALUE### id="value_###LABEL_NAME###" />
+			<input type="hidden" ###ID######NAME######HIDDENVALUE###/>
+			<label for="check_###LABEL_NAME###">###LABEL###</label>
+		</div>
+		<!-- ###ITEM### end -->
+		<!-- ###CONTENT### end -->
+	</div>
+</div>
+<!-- ###POWERMAIL_FIELDWRAP_HTML_CHECKLIMIT### end -->

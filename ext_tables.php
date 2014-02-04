@@ -6,6 +6,8 @@ if (!defined ('TYPO3_MODE')) {
 t3lib_div::loadTCA("tx_powermail_fields");
 $TCA["tx_powermail_fields"]["columns"]["formtype"]["config"]["items"][] = array('Select box with limit', 'selectlimit');
 $TCA["tx_powermail_fields"]["columns"]["flexform"]["config"]["ds"]["selectlimit"] = 'FILE:EXT:powermail_limit/lib/def/def_field_selectlimit.xml';
+$TCA["tx_powermail_fields"]["columns"]["formtype"]["config"]["items"][] = array('Checkbox(es) with limit', 'checklimit');
+$TCA["tx_powermail_fields"]["columns"]["flexform"]["config"]["ds"]["checklimit"] = 'FILE:EXT:powermail_limit/lib/def/def_field_checklimit.xml';
 
 
 $tempColumns = array (
