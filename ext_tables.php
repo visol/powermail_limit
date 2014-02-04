@@ -3,8 +3,6 @@ if (!defined ('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
-//t3lib_extMgm::addStaticFile($_EXTKEY,'static/powermail_limit/', 'powermail multiple upload');
-
 t3lib_div::loadTCA("tx_powermail_fields");
 $TCA["tx_powermail_fields"]["columns"]["formtype"]["config"]["items"][] = array('Select box with limit', 'selectlimit');
 $TCA["tx_powermail_fields"]["columns"]["flexform"]["config"]["ds"]["selectlimit"] = 'FILE:EXT:powermail_limit/lib/def/def_field_selectlimit.xml';
