@@ -1,0 +1,19 @@
+plugin.tx_powermail { 
+	view { 
+		templateRootPath > 
+		templateRootPaths { 
+			10 = {$plugin.tx_powermail.view.templateRootPath}
+			20 = {$plugin.tx_powermaillimit.view.templateRootPath}
+		}
+		partialRootPath > 
+		partialRootPaths { 
+			10 = {$plugin.tx_powermail.view.partialRootPath}
+			20 = {$plugin.tx_powermaillimit.view.partialRootPath}
+		}
+		layoutRootPath > 
+		layoutRootPaths { 
+			10 = {$plugin.tx_powermail.view.layoutRootPath}
+			20 = {$plugin.tx_powermaillimit.view.layoutRootPath}
+		}
+	}
+}

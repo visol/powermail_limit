@@ -12,11 +12,10 @@
 
 $EM_CONF[$_EXTKEY] = array(
 	'title' => 'powermail limit',
-	'description' => 'Offers limitation features for powermail (currently: number of form postings, selectbox limit)',
+	'description' => 'Offers limitation features for powermail (currently: selectbox and checkbox limit)',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '0.5.0',
-	'dependencies' => 'powermail',
+	'version' => '2.0.0',
 	'conflicts' => '',
 	'priority' => '',
 	'loadOrder' => '',
@@ -34,7 +33,8 @@ $EM_CONF[$_EXTKEY] = array(
 	'CGLcompliance_note' => '',
 	'constraints' => array(
 		'depends' => array(
-			'powermail' => '1.5.0-',
+			'typo3' => '6.2.0-6.3.99',
+			'powermail' => '2.1.0-3.99.99',
 		),
 		'conflicts' => array(
 		),

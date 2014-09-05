@@ -1,0 +1,20 @@
+# Not in use: Extending the Field model breaks PHP validation of Powermail
+#plugin.tx_powermail {
+#	objects {
+#		In2code\Powermail\Domain\Model\Field {
+#			className = Visol\PowermailLimit\Domain\Model\Field
+#		}
+#	}
+#}
+#
+#config.tx_extbase.persistence.classes {
+#	Visol\PowermailLimit\Domain\Model\Field {
+#		mapping {
+#			tableName = tx_powermail_domain_model_fields
+#			columns {
+#				option_limit_message.mapOnProperty = optionLimitMessage
+#				limit_error_message.mapOnProperty = limitErrorMessage
+#			}
+#		}
+#	}
+#}

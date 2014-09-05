@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2014-05-02T12:00:00Z" product-name="powermail">
+		<header/>
+		<body>
+			<trans-unit id="tx_powermail_domain_model_fields.type.limitspacer">
+				<source>Fields with limit</source>
+			</trans-unit>
+			<trans-unit id="tx_powermail_domain_model_fields.type.81">
+				<source>Select field with limit</source>
+			</trans-unit>
+			<trans-unit id="tx_powermail_domain_model_fields.type.82">
+				<source>Checkboxes with limit</source>
+			</trans-unit>
+			<trans-unit id="tx_powermail_domain_model_fields.option_limit_message">
+				<source>Limit message shown in field options (if empty option will not be shown)</source>
+			</trans-unit>
+			<trans-unit id="tx_powermail_domain_model_fields.limit_error_message">
+				<source>Limit message shown in error message</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

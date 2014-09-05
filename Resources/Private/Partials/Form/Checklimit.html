@@ -1,0 +1,42 @@
+{namespace vh=In2code\Powermail\ViewHelpers}
+{namespace vi=Visol\PowermailLimit\ViewHelpers}
+
+<div id="powermail_fieldwrap_{field.uid}" class="powermail_fieldwrap powermail_fieldwrap_check powermail_fieldwrap_{field.uid} {field.css}">
+	<fieldset>
+		<legend class="powermail_label powermail_check_legend" title="{field.description}">
+			<vh:string.RawAndRemoveXss>{field.title}</vh:string.RawAndRemoveXss><f:if condition="{field.mandatory}"><span class="mandatory">*</span></f:if>
+		</legend>
+
+		<div class="powermail_check_outer {vh:Validation.ErrorClass(field:field, class:'powermail_field_error')}">
+			<f:alias map="{preProcessedFieldSettings: '{field.settings->vi:preProcessCheckboxSettingsRespectingLimitation()}'}">
+				<f:for each="{preProcessedFieldSettings}" as="setting" iteration="index">
+					<f:alias map="{checkboxRenderingInformation: '{vi:checkboxWithLimitPreRenderer(fieldAnswerValue:\'{setting.value}\', fieldUid: \'{field.uid}\', limit: \'{setting.limit}\')}'}">
+						<f:if condition="{checkboxRenderingInformation.renderCheckbox}">
+							<div class="powermail_check_inner powermail_check_inner_{index.cycle}">
+								<vi:form.checkboxRespectingLimitation
+										fieldUid="{field.uid}"
+										limit="{setting.limit}"
+										property="{field.marker}."
+										value="{setting.value}"
+										checked="{setting.selected}"
+										id="powermail_field_{field.marker}_{index.cycle}"
+										additionalAttributes="{vh:Validation.ValidationDataAttribute(field:field, iteration:index)}"
+										class="powermail_checkbox powermail_checkbox_{field.uid}" />
+
+								<label for="powermail_field_{field.marker}_{index.cycle}">
+									<vh:string.RawAndRemoveXss>
+										{setting.label}
+										<f:if condition="{checkboxRenderingInformation.optionLimitMessage}">
+											{checkboxRenderingInformation.optionLimitMessage}
+										</f:if>
+									</vh:string.RawAndRemoveXss>
+								</label>
+							</div>
+						</f:if>
+					</f:alias>
+				</f:for>
+			</f:alias>
+			<div class="powermail_field_error_container powermail_field_error_container_{field.marker}"></div>
+		</div>
+	</fieldset>
+</div>

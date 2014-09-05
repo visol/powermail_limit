@@ -1,0 +1,14 @@
+plugin.tx_powermaillimit {
+
+	view {
+		# cat=powermaillimit/file; type=string; label= Path to template root (FE)
+		templateRootPath = EXT:powermail_limit/Resources/Private/Templates/
+
+		# cat=powermaillimit/file; type=string; label= Path to template partials (FE)
+		partialRootPath = EXT:powermail_limit/Resources/Private/Partials/
+
+		# cat=powermaillimit/file; type=string; label= Path to template layouts (FE)
+		layoutRootPath = EXT:powermail_limit/Resources/Private/Layouts/
+	}
+
+}

@@ -1,7 +1,4 @@
-#
-# Table structure for table 'tt_content'
-#
-CREATE TABLE tt_content (
-	tx_powermaillimit_postlimit int(11) DEFAULT '0' NOT NULL,
-	tx_powermaillimit_postlimit_error text
+CREATE TABLE tx_powermail_domain_model_fields (
+	option_limit_message 	varchar(255) DEFAULT '' NOT NULL,
+	limit_error_message text
 );
